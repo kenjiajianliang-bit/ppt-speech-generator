@@ -1,38 +1,16 @@
-# 使用 Node.js 官方镜像
+# Railway Dockerfile - 简化版
 FROM node:20-alpine
 
-# 安装必要的工具
-RUN apk add --no-cache git
-
-# 设置工作目录
 WORKDIR /app
 
-# 复制 package.json
-COPY package*.json ./
+# 复制所有文件（除了 .gitignore 排除的）
+COPY . .
 
-# 安装所有依赖（包括 devDependencies，用于构建）
-RUN npm install
-
-# 复制源代码
-COPY public/ ./public/
-COPY src/ ./src/
-COPY tsconfig.json ./
-
-# 构建 TypeScript
-RUN npm run build
-
-# 重新安装生产依赖
-RUN npm install --production
-
-# 创建上传目录
-RUN mkdir -p uploads
+# 安装依赖并构建
+RUN npm install && npm run build
 
 # 暴露端口
 EXPOSE 3000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/styles || exit 1
-
-# 启动应用
+# 启动
 CMD ["node", "dist/server/index.js"]

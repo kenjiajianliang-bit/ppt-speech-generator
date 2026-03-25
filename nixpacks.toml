@@ -1,9 +1,0 @@
-# Nixpacks 配置 - Railway 使用此文件
-[phases.build]
-cmds = ["npm run build"]
-
-[start]
-cmd = "npm start"
-
-[staticAssets]
-"dist" = "/app/dist"
