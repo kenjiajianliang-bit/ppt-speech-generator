@@ -9,11 +9,11 @@ COPY . .
 # 安装依赖
 RUN npm install
 
-# 构建 - 这会创建 dist 目录
+# 构建
 RUN npm run build
 
-# 暴露端口
-EXPOSE 3000
+# 暴露端口（使用环境变量 PORT）
+EXPOSE 8080
 
 # 启动服务器
 CMD ["node", "dist/server/index.js"]
