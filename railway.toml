@@ -1,0 +1,21 @@
+# Railway 配置
+# Railway 会自动识别 Node.js 项目，此文件用于自定义配置
+
+[build]
+# 构建命令
+builder = "NIXPACKS"
+
+# 启动命令
+startCommand = "npm start"
+
+# 构建命令
+buildCommand = "npm run build"
+
+[deploy]
+# 健康检查
+healthcheckPath = "/api/styles"
+healthcheckTimeout = 60
+
+# 重启策略
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
