@@ -451,7 +451,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         sections: structure.sections,
         openingSlides: structure.openingSlides,
         bodySlides: structure.bodySlides,
-        closingSlides: structure.closingSlides
+        closingSlides: structure.closingSlides,
+        mainTopics: structure.mainTopics || []
       },
       summary: textSummary,
       filePath: req.file.path,
