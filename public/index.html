@@ -718,7 +718,6 @@
           </div>
 
           <div class="confirm-actions">
-            <button class="btn btn-modify" id="modifyDirectorBriefBtn">✏️ 修改</button>
             <button class="btn btn-confirm" id="confirmDirectorBriefBtn">✅ 确认并继续</button>
           </div>
         </div>
@@ -1532,20 +1531,6 @@
         showError(`演讲稿生成失败：${error.message}`);
       }
     }
-
-    /**
-     * 修改导演阐述（点击修改按钮时）
-     */
-    document.getElementById('modifyDirectorBriefBtn').addEventListener('click', () => {
-      // 将关键字段转换为可编辑列表
-      const currentMessages = Array.from(briefKeyMessages.querySelectorAll('li')).map(li => li.textContent);
-      const newMessages = prompt('请输入关键信息（每行一条）:', currentMessages.join('\n'));
-      if (newMessages !== null) {
-        briefKeyMessages.innerHTML = newMessages.split('\n').filter(msg => msg.trim()).map(msg =>
-          `<li>${msg.trim()}</li>`
-        ).join('');
-      }
-    });
 
     // ==================== 原有工具函数 ====================
 

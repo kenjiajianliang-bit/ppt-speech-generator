@@ -185,9 +185,16 @@ app.post('/api/generate/phase2-analyst', async (req, res) => {
   try {
     const { sessionId, structure } = req.body;
     console.log(`[API] phase2-analyst 收到请求：sessionId=${sessionId}`);
+    console.log(`[API] structure 类型：${typeof structure}, 是否有 bodySlides: ${structure?.bodySlides ? '是' : '否'}`);
 
     if (!sessionId) {
       return res.status(400).json({ error: '缺少 sessionId' });
+    }
+
+    // 验证 structure
+    if (!structure || !structure.bodySlides) {
+      console.error('[API] structure 无效:', structure);
+      return res.status(400).json({ error: '无效的 structure 数据' });
     }
 
     // 初始化进度
