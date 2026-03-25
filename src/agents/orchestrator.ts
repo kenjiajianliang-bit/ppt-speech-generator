@@ -232,7 +232,8 @@ export class Orchestrator {
       }));
 
       // 批量分析（并行处理，带进度回调）
-      const results = await this.contentAnalystAgent.analyzeBatch(analystInputs, 3, onProgress);
+      // 减少并发度到 2，避免同时太多请求导致超时
+      const results = await this.contentAnalystAgent.analyzeBatch(analystInputs, 2, onProgress);
 
       // 收集成功的分析结果
       const analyses: SlideAnalysis[] = [];
