@@ -265,9 +265,9 @@ ${slideContent}
    */
   private parseResponse(content: string, slideNumber: number): SlideAnalysis {
     // 清理 Markdown 代码块标记
-    const cleanedContent = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    let cleanedContent = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
 
-    // 尝试提取 JSON
+    // 尝试提取 JSON（匹配最外层的大括号）
     const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
@@ -291,8 +291,11 @@ ${slideContent}
         };
       } catch (e) {
         console.warn('[ContentAnalyst] JSON 解析失败，使用降级解析');
-        console.warn('[ContentAnalyst] 解析内容:', cleanedContent.substring(0, 500));
+        console.warn('[ContentAnalyst] 错误:', e instanceof Error ? e.message : String(e));
+        console.warn('[ContentAnalyst] 原始内容 (前 300 字符):', content.substring(0, 300));
       }
+    } else {
+      console.warn('[ContentAnalyst] 未找到 JSON 内容，使用降级解析');
     }
 
     // 降级解析
