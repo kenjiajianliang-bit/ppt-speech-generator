@@ -24,7 +24,7 @@ export class ContentAnalystAgent {
   /**
    * 分析单页 PPT（带超时）
    */
-  async analyze(input: ContentAnalystAgentInput, timeoutMs: number = 120000): Promise<AgentResult<SlideAnalysis>> {
+  async analyze(input: ContentAnalystAgentInput, timeoutMs: number = 180000): Promise<AgentResult<SlideAnalysis>> {
     const startTime = Date.now();
     try {
       const prompt = this.buildPrompt(input);
