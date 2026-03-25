@@ -64,6 +64,7 @@ export class ContentAnalystAgent {
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || '';
+      console.log(`[ContentAnalyst] 第 ${input.slide.slideNumber} 页 AI 原始响应 (前 200 字符): ${content.substring(0, 200)}...`);
 
       const analysis = this.parseResponse(content, input.slide.slideNumber);
 
