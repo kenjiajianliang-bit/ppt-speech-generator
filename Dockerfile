@@ -3,14 +3,22 @@ FROM node:20-bookworm
 
 WORKDIR /app
 
-# 复制所有文件
-COPY . .
+# 复制 package 文件
+COPY package*.json ./
 
 # 安装依赖
 RUN npm install
 
+# 构建
+RUN npm run build
+
+# 复制源代码
+COPY src/ ./src/
+COPY public/ ./public/
+COPY tsconfig.json ./
+
 # 暴露端口
 EXPOSE 3000
 
-# 使用 node 运行
-CMD ["node", "--import", "tsx/esm", "src/server/index.ts"]
+# 启动
+CMD ["node", "dist/server/index.js"]

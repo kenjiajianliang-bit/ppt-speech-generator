@@ -2,12 +2,11 @@
   "name": "ppt-speech-generator",
   "version": "1.1.0",
   "description": "PPT 演讲稿生成智能体 - 根据 PPT 内容自动生成演讲稿",
-  "type": "module",
   "main": "dist/server/index.js",
   "scripts": {
-    "dev": "tsx watch src/server/index.ts",
+    "dev": "tsc -w",
     "build": "tsc",
-    "start": "tsx src/server/index.ts",
+    "start": "node dist/server/index.js",
     "test": "vitest"
   },
   "dependencies": {
@@ -19,8 +18,7 @@
     "marked": "^17.0.5",
     "multer": "^1.4.5-lts.1",
     "openai": "^4.20.0",
-    "pdf-parse": "^1.1.1",
-    "tsx": "^4.7.0"
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
