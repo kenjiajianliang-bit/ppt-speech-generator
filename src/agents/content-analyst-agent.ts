@@ -267,6 +267,12 @@ ${slideContent}
     // 清理 Markdown 代码块标记
     let cleanedContent = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
 
+    // 预处理：将字符串值中的中文冒号替换为英文冒号（只替换引号内的）
+    // 这可以防止 AI 返回包含中文标点的非法 JSON
+    cleanedContent = cleanedContent
+      .replace(/"([^"]*)"([^:])：/g, '"$1"$2: ')  // 替换键值对后的中文冒号
+      .replace(/：/g, ':');  // 替换所有剩余的中文冒号
+
     // 尝试提取 JSON（匹配最外层的大括号）
     const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
