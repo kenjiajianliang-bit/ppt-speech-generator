@@ -21,7 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // 中间件
 app.use(cors());
@@ -522,8 +522,8 @@ app.post('/api/refine', async (req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-  console.log(`服务器运行在 http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
   console.log(`\nAPI 端点:`);
   console.log(`\n--- 多智能体分阶段 API ---`);
   console.log(`  POST /api/generate/phase1-director  - 阶段 1：生成导演阐述`);
