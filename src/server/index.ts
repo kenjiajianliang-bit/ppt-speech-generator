@@ -547,7 +547,7 @@ app.post('/api/refine', async (req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
   console.log(`当前环境：${process.env.NODE_ENV || 'development'}`);
   console.log(`API baseURL: ${process.env.DASHSCOPE_BASE_URL}`);
@@ -566,5 +566,9 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`  POST /api/generate - 生成演讲稿（简单模式）`);
   console.log(`  POST /api/refine   - 优化演讲稿`);
 });
+
+// 设置服务器超时（15 分钟，适应长时间分析任务）
+server.timeout = 15 * 60 * 1000;
+server.keepAliveTimeout = 15 * 60 * 1000;
 
 export default app;
