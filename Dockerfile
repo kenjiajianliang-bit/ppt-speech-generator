@@ -10,12 +10,19 @@ WORKDIR /app
 # 复制 package.json
 COPY package*.json ./
 
-# 安装生产依赖
-RUN npm install --production
+# 安装所有依赖（包括 devDependencies，用于构建）
+RUN npm install
 
 # 复制源代码
 COPY public/ ./public/
-COPY dist/ ./dist/
+COPY src/ ./src/
+COPY tsconfig.json ./
+
+# 构建 TypeScript
+RUN npm run build
+
+# 重新安装生产依赖
+RUN npm install --production
 
 # 创建上传目录
 RUN mkdir -p uploads
