@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPT 演讲稿生成器</title>
+  <!-- 引入 marked.js 用于 Markdown 渲染 -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .upload-area {
+      border: 2px dashed #667eea;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .upload-area:hover {
+      background: #f5f5ff;
+      border-color: #764ba2;
+    }
+
+    .upload-area.dragover {
+      background: #e8e8ff;
+      border-color: #764ba2;
+    }
+
+    .upload-area p {
+      color: #666;
+      margin-top: 10px;
+    }
+
+    .upload-area input {
+      display: none;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .file-info {
+      background: #f5f5ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .file-info.show {
+      display: block;
+    }
+
+    .file-info p {
+      color: #667eea;
+      font-weight: 500;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .progress-container {
+      margin-top: 15px;
+      display: none;
+    }
+
+    .progress-container.show {
+      display: block;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .speech-output {
+      background: #fafafa;
+      border-radius: 8px;
+      padding: 20px;
+      max-height: 700px;
+      overflow-y: auto;
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+
+    /* Markdown 渲染样式 */
+    .speech-output h1 {
+      font-size: 1.5rem;
+      margin: 0 0 15px 0;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .speech-output h2 {
+      font-size: 1.2rem;
+      margin: 20px 0 12px 0;
+      color: #667eea;
+      background: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 4px solid #667eea;
+    }
+
+    .speech-output h3 {
+      font-size: 1rem;
+      margin: 15px 0 10px 0;
+      color: #444;
+    }
+
+    .speech-output p {
+      margin: 10px 0;
+      color: #333;
+    }
+
+    .speech-output ul, .speech-output ol {
+      margin: 10px 0;
+      padding-left: 25px;
+    }
+
+    .speech-output li {
+      margin: 6px 0;
+    }
+
+    .speech-output blockquote {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      margin: 15px 0;
+      padding: 10px 15px;
+      color: #2e7d32;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .speech-output table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 0.85rem;
+    }
+
+    .speech-output th {
+      background: #667eea;
+      color: white;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .speech-output td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+
+    .speech-output tr:nth-child(even) {
+      background: #f5f5f5;
+    }
+
+    .speech-output hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 20px 0;
+    }
+
+    .speech-output-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px 8px 0 0;
+      margin: -20px -20px 20px -20px;
+    }
+
+    .speech-output-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .speech-output-header p {
+      margin: 5px 0 0;
+      opacity: 0.9;
+      font-size: 0.85rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .slide-item {
+      background: white;
+      border-left: 3px solid #667eea;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .slide-item h4 {
+      margin: 0 0 10px;
+      color: #667eea;
+      font-size: 1rem;
+    }
+
+    .slide-meta {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .slide-content {
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .actions .btn {
+      flex: 1;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    /* 多智能体流程步骤 */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .step-indicator::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #e0e0e0;
+      z-index: 0;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      color: #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .step.active .step-circle {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .step.completed .step-circle {
+      background: #4caf50;
+      color: white;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .step.active .step-label {
+      color: #667eea;
+      font-weight: 500;
+    }
+
+    /* 导演阐述卡片 */
+    .director-brief-card {
+      background: #f8f9ff;
+      border: 2px solid #667eea;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .director-brief-item {
+      margin-bottom: 15px;
+    }
+
+    .director-brief-label {
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .director-brief-value {
+      background: white;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .director-brief-value textarea {
+      width: 100%;
+      border: none;
+      resize: vertical;
+      min-height: 60px;
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .director-brief-value textarea:focus {
+      outline: none;
+    }
+
+    .key-messages-list {
+      list-style: none;
+    }
+
+    .key-messages-list li {
+      background: white;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      border-left: 3px solid #667eea;
+    }
+
+    /* 不确定点列表 */
+    .uncertainty-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .uncertainty-item {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .uncertainty-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .uncertainty-badge {
+      background: #f97316;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+
+    .uncertainty-element {
+      font-weight: 600;
+      color: #c2410c;
+    }
+
+    .uncertainty-question {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .uncertainty-suggestion {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .uncertainty-answer {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+
+    .uncertainty-answer:focus {
+      outline: none;
+      border-color: #f97316;
+    }
+
+    /* 确认按钮组 */
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .confirm-actions .btn {
+      flex: 1;
+    }
+
+    .btn-confirm {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    .btn-modify {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+
+    /* 进度提示 */
+    .progress-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+      max-width: 400px;
+    }
+
+    .progress-toast.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .progress-toast-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .progress-toast-title {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .progress-toast-message {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .error-message {
+      background: #fff0f0;
+      color: #d32f2f;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .preview-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .preview-item {
+      background: #f9f9f9;
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 演讲稿生成器</h1>
+      <p>多智能体协同 - 上传 PPT 或 PDF，自动生成专业演讲稿</p>
+    </header>
+
+    <!-- 步骤指示器 -->
+    <div class="step-indicator" id="stepIndicator" style="display: none;">
+      <div class="step" id="step1">
+        <div class="step-circle">1</div>
+        <div class="step-label">文档分析</div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-circle">2</div>
+        <div class="step-label">导演阐述确认</div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-circle">3</div>
+        <div class="step-label">内容理解确认</div>
+      </div>
+      <div class="step" id="step4">
+        <div class="step-circle">4</div>
+        <div class="step-label">生成演讲稿</div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <!-- 左侧：输入区域 -->
+      <div class="card">
+        <!-- 导演阐述确认区域 -->
+        <div id="directorBriefSection" style="display: none;">
+          <h2 style="margin-bottom: 20px;">🎬 导演阐述</h2>
+          <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
+            这是智能体对文档整体的理解，请确认是否符合您的预期。您可以直接编辑任何字段。
+          </p>
+
+          <div class="director-brief-card">
+            <div class="director-brief-item">
+              <div class="director-brief-label">核心主题</div>
+              <div class="director-brief-value">
+                <textarea id="briefCoreTheme" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="director-brief-item">
+              <div class="director-brief-label">叙事主线</div>
+              <div class="director-brief-value">
+                <textarea id="briefNarrativeArc" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="director-brief-item">
+              <div class="director-brief-label">演讲基调</div>
+              <div class="director-brief-value">
+                <textarea id="briefTone" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="director-brief-item">
+              <div class="director-brief-label">受众分析</div>
+              <div class="director-brief-value">
+                <textarea id="briefAudience" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="director-brief-item">
+              <div class="director-brief-label">关键信息（3-5 个）</div>
+              <div class="director-brief-value">
+                <ul class="key-messages-list" id="briefKeyMessages"></ul>
+              </div>
+            </div>
+
+            <div class="director-brief-item">
+              <div class="director-brief-label">演讲目标</div>
+              <div class="director-brief-value">
+                <textarea id="briefGoal" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="confirm-actions">
+            <button class="btn btn-modify" id="modifyDirectorBriefBtn">✏️ 修改</button>
+            <button class="btn btn-confirm" id="confirmDirectorBriefBtn">✅ 确认并继续</button>
+          </div>
+        </div>
+
+        <!-- 不确定点确认区域 -->
+        <div id="uncertaintySection" style="display: none;">
+          <h2 style="margin-bottom: 20px;">❓ 内容理解确认</h2>
+          <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">
+            智能体在分析过程中遇到 <strong id="uncertaintyCount" style="color: #f97316;">0</strong> 个不确定的地方，请您帮忙确认：
+          </p>
+
+          <div class="uncertainty-list" id="uncertaintyList"></div>
+
+          <div class="confirm-actions">
+            <button class="btn btn-secondary" id="skipUncertaintyBtn">⏭️ 跳过</button>
+            <button class="btn btn-confirm" id="confirmUncertaintyBtn">✅ 确认并继续</button>
+          </div>
+        </div>
+
+        <!-- 文件上传区域（初始显示） -->
+        <div id="uploadSection">
+          <h2>第一步：上传文件</h2>
+          <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".pptx,.pdf">
+            <div style="font-size: 3rem;">📄</div>
+            <p>点击或拖拽上传 PPT 或 PDF 文件</p>
+            <p style="font-size: 0.85rem; color: #999;">支持 .pptx 和 .pdf 格式</p>
+          </div>
+          <div class="file-info" id="fileInfo">
+            <p id="fileName"></p>
+          </div>
+
+          <div class="preview-section" id="previewSection" style="display: none;">
+            <h3 style="margin-bottom: 15px; color: #555;">文档结构预览</h3>
+            <div id="structurePreview"></div>
+          </div>
+        </div>
+
+        <!-- 演讲参数设置（上传后显示） -->
+        <div id="paramSection" style="display: none; margin-top: 30px;">
+          <h2 style="margin-bottom: 20px;">第二步：设置演讲参数</h2>
+          <div class="form-group">
+            <label for="style">演讲场合</label>
+            <select id="style">
+              <option value="training">🎓 培训讲座 - 轻松友好，通俗易懂</option>
+              <option value="presentation">💼 正式汇报 - 专业严谨，逻辑清晰</option>
+              <option value="report">📊 工作汇报 - 简洁务实，结果导向</option>
+              <option value="casual">🎤 大众演讲 - 富有感染力，情感共鸣</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="duration">演讲时长（分钟）</label>
+            <input type="number" id="duration" min="1" value="30" placeholder="例如：30、60、120">
+            <p style="font-size: 0.85rem; color: #999; margin-top: 8px;">提示：30 分钟约 6000 字，60 分钟约 12000 字</p>
+          </div>
+
+          <div class="form-group">
+            <label for="audience">受众群体（可选）</label>
+            <input type="text" id="audience" placeholder="例如：公司高管、新员工、行业专家">
+          </div>
+
+          <div class="form-group">
+            <label for="context">额外背景信息（可选）</label>
+            <textarea id="context" placeholder="例如：这是季度业绩汇报，需要突出增长数据..."></textarea>
+          </div>
+
+          <button class="btn" id="startAnalysisBtn">开始分析</button>
+        </div>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p id="loadingText">正在分析文档并生成演讲稿...</p>
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">正在准备...</div>
+          </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+      </div>
+
+      <!-- 右侧：输出区域 -->
+      <div class="card">
+        <h2>演讲稿预览</h2>
+        <div id="outputContainer">
+          <p style="color: #999; text-align: center; padding: 40px;">
+            上传 PPT 并生成后，演讲稿将显示在这里
+          </p>
+        </div>
+        <div class="actions" id="actionButtons" style="display: none;">
+          <button class="btn btn-secondary" id="copyBtn">📋 复制全文</button>
+          <button class="btn btn-secondary" id="downloadBtn">💾 下载 Markdown</button>
+        </div>
+
+        <!-- 互动修改区域 -->
+        <div id="chatSection" style="margin-top: 30px; display: none;">
+          <h3 style="margin-bottom: 15px; color: #555;">💬 互动修改</h3>
+          <p style="color: #999; font-size: 0.9rem; margin-bottom: 15px;">
+            告诉智能体你想要如何修改演讲稿，例如："开场白再生动一些"、"第 3 页的内容太简单了，再详细点"、"整体语气再正式一些"
+          </p>
+          <div class="chat-container" style="border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden;">
+            <div id="chatHistory" style="height: 200px; overflow-y: auto; padding: 15px; background: #f9f9f9;">
+              <p style="color: #999; text-align: center;">对话历史将显示在这里</p>
+            </div>
+            <div style="display: flex; padding: 10px; background: white; border-top: 1px solid #e0e0e0;">
+              <input type="text" id="chatInput" placeholder="请输入修改建议..."
+                style="flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px 0 0 8px; font-size: 1rem;">
+              <button class="btn" id="sendChatBtn" style="border-radius: 0 8px 8px 0; width: auto; padding: 0 20px;">发送</button>
+            </div>
+          </div>
+          <div class="loading" id="chatLoading">
+            <div class="spinner" style="width: 30px; height: 30px;"></div>
+            <p style="font-size: 0.9rem;">正在修改演讲稿...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 进度提示 Toast -->
+    <div class="progress-toast" id="progressToast">
+      <div class="progress-toast-header">
+        <span id="toastIcon">⏳</span>
+        <span class="progress-toast-title" id="toastTitle">处理中</span>
+      </div>
+      <div class="progress-toast-message" id="toastMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    // DOM 元素
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loadingText');
+    const errorMessage = document.getElementById('errorMessage');
+    const outputContainer = document.getElementById('outputContainer');
+    const actionButtons = document.getElementById('actionButtons');
+    const previewSection = document.getElementById('previewSection');
+    const structurePreview = document.getElementById('structurePreview');
+    const paramSection = document.getElementById('paramSection');
+    const uploadSection = document.getElementById('uploadSection');
+    const startAnalysisBtn = document.getElementById('startAnalysisBtn');
+
+    // 多智能体流程相关元素
+    const stepIndicator = document.getElementById('stepIndicator');
+    const directorBriefSection = document.getElementById('directorBriefSection');
+    const uncertaintySection = document.getElementById('uncertaintySection');
+    const uncertaintyList = document.getElementById('uncertaintyList');
+    const uncertaintyCount = document.getElementById('uncertaintyCount');
+
+    // 导演阐述字段
+    const briefCoreTheme = document.getElementById('briefCoreTheme');
+    const briefNarrativeArc = document.getElementById('briefNarrativeArc');
+    const briefTone = document.getElementById('briefTone');
+    const briefAudience = document.getElementById('briefAudience');
+    const briefKeyMessages = document.getElementById('briefKeyMessages');
+    const briefGoal = document.getElementById('briefGoal');
+
+    // 进度 Toast
+    const progressToast = document.getElementById('progressToast');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+
+    // 状态变量
+    let uploadedFilePath = null;
+    let pptSummary = null;
+    let pptStructure = null;
+    let pptSlides = null;  // 新增：保存解析后的 slides
+    let currentSpeech = null;
+    let sessionId = null;
+    let currentStage = 'upload'; // upload, director, analyst, writer, completed
+    let directorBrief = null;
+    let slideAnalyses = null;
+    let uncertainties = null;
+
+    // ==================== 工具函数 ====================
+
+    /**
+     * 显示进度 Toast
+     */
+    function showToast(icon, title, message, duration = 3000) {
+      toastIcon.textContent = icon;
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+      progressToast.classList.add('show');
+      if (duration > 0) {
+        setTimeout(() => hideToast(), duration);
+      }
+    }
+
+    /**
+     * 隐藏 Toast
+     */
+    function hideToast() {
+      progressToast.classList.remove('show');
+    }
+
+    /**
+     * 更新步骤指示器
+     */
+    function updateStepIndicator(stage) {
+      const steps = ['director', 'analyst', 'writer', 'completed'];
+      const currentIndex = steps.indexOf(stage);
+
+      steps.forEach((step, index) => {
+        const el = document.getElementById(`step${index + 1}`);
+        if (!el) return;
+
+        if (index < currentIndex) {
+          el.classList.add('completed');
+          el.classList.remove('active');
+        } else if (index === currentIndex) {
+          el.classList.add('active');
+          el.classList.remove('completed');
+        } else {
+          el.classList.remove('active', 'completed');
+        }
+      });
+    }
+
+    /**
+     * 显示错误消息
+     */
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('show');
+      showToast('❌', '错误', message, 5000);
+    }
+
+    /**
+     * 隐藏错误消息
+     */
+    function hideError() {
+      errorMessage.classList.remove('show');
+    }
+
+    /**
+     * 设置加载状态
+     */
+    function setLoading(loading, message) {
+      const loadingEl = document.getElementById('loading');
+      const loadingText = document.getElementById('loadingText');
+      if (loading) {
+        loadingText.textContent = message;
+        loadingEl.classList.add('show');
+      } else {
+        loadingEl.classList.remove('show');
+      }
+    }
+
+    // ==================== 文件上传 ====================
+
+    // 上传区域点击
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    // 文件选择
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // 拖拽事件
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    }
+
+    function handleFile(file) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['pptx', 'pdf'].includes(ext)) {
+        showError('仅支持 .pptx 和 .pdf 格式文件');
+        return;
+      }
+
+      fileName.textContent = `已选择：${file.name}`;
+      fileInfo.classList.add('show');
+
+      setLoading(true, '正在上传文件...');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('上传失败');
+        return res.json();
+      })
+      .then(data => {
+        uploadedFilePath = data.filePath;
+        pptSummary = data.summary;
+        pptStructure = data.structure;
+        pptSlides = data.slides;  // 保存 slides
+
+        // 显示结构预览
+        showStructurePreview(data.structure);
+
+        // 显示参数设置区域
+        uploadSection.style.display = 'none';
+        paramSection.style.display = 'block';
+
+        hideError();
+        setLoading(false, '');
+        showToast('✅', '上传成功', `已上传 ${data.totalSlides} 页幻灯片`);
+      })
+      .catch(error => {
+        showError(`上传失败：${error.message}`);
+        setLoading(false, '');
+      });
+    }
+
+    function showStructurePreview(structure) {
+      let html = '';
+
+      if (structure.sections && structure.sections.length > 0) {
+        structure.sections.forEach(section => {
+          html += `<div class="preview-item">
+            <strong>${section.title}</strong> - 第${section.startSlide}-${section.endSlide}页
+          </div>`;
+        });
+      } else {
+        html = `<div class="preview-item">共 ${structure.bodySlides?.length || 0} 页内容</div>`;
+      }
+
+      structurePreview.innerHTML = html;
+      previewSection.style.display = 'block';
+    }
+
+    function displaySpeech(speech) {
+      // 使用 marked.js 渲染 Markdown 为 HTML
+      const renderedContent = marked.parse(speech.markdown);
+
+      const durationMatch = speech.markdown.match(/预计时长：(\d+) 分钟/);
+
+      let html = '';
+      html += `<div class="speech-output-header">`;
+      html += `<h3>${speech.title || '演讲稿'}</h3>`;
+      html += `<p>预计时长：${durationMatch ? durationMatch[1] : speech.estimatedDuration || '-'} 分钟 | `;
+      html += `PPT 页数：${speech.slides?.length || 0} 页</p>`;
+      html += `</div>`;
+
+      html += `<div class="speech-output">`;
+      html += renderedContent;
+      html += `</div>`;
+
+      html += `</div>`;
+
+      outputContainer.innerHTML = html;
+      actionButtons.style.display = 'flex';
+
+      // 显示互动修改区域
+      document.getElementById('chatSection').style.display = 'block';
+    }
+
+    // 聊天记录
+    let chatHistory = [];
+
+    // 添加聊天消息到界面
+    function appendChatMessage(role, content) {
+      const chatHistoryEl = document.getElementById('chatHistory');
+      const isUser = role === 'user';
+
+      // 清空"暂无消息"提示
+      if (chatHistoryEl.querySelector('p')) {
+        chatHistoryEl.innerHTML = '';
+      }
+
+      const messageEl = document.createElement('div');
+      messageEl.style.cssText = `
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        max-width: 85%;
+        ${isUser ? 'margin-left: auto; background: #667eea; color: white;' : 'margin-right: auto; background: #e0e0e0; color: #333;'}
+      `;
+      messageEl.textContent = content;
+      chatHistoryEl.appendChild(messageEl);
+
+      // 滚动到底部
+      chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    }
+
+    // 发送聊天消息
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+
+      if (!message || !currentSpeech) return;
+
+      // 添加用户消息到界面
+      appendChatMessage('user', message);
+      chatHistory.push({ role: 'user', content: message });
+
+      input.value = '';
+      input.disabled = true;
+      document.getElementById('sendChatBtn').disabled = true;
+      document.getElementById('chatLoading').classList.add('show');
+
+      try {
+        const style = document.getElementById('style').value;
+        const durationMinutes = parseInt(document.getElementById('duration').value);
+
+        const response = await fetch('/api/refine', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            originalSpeech: currentSpeech,
+            pptContent: pptSummary,
+            feedback: message,
+            style,
+            durationMinutes
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || '修改失败');
+        }
+
+        const speech = await response.json();
+        currentSpeech = speech;
+
+        // 添加 AI 响应到界面
+        appendChatMessage('assistant', '已根据您的要求修改演讲稿，请查看右侧预览。');
+
+        // 更新显示
+        displaySpeech(speech);
+      } catch (error) {
+        showError(`修改失败：${error.message}`);
+        chatHistory.pop(); // 移除失败的用户消息
+      } finally {
+        input.disabled = false;
+        document.getElementById('sendChatBtn').disabled = false;
+        document.getElementById('chatLoading').classList.remove('show');
+        input.focus();
+      }
+    }
+
+    // 绑定聊天输入框事件
+    document.getElementById('sendChatBtn').addEventListener('click', sendChatMessage);
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendChatMessage();
+      }
+    });
+
+    // ==================== 多智能体流程控制 ====================
+
+    /**
+     * 步骤 1：开始分析（生成导演阐述）
+     */
+    startAnalysisBtn.addEventListener('click', async () => {
+      const style = document.getElementById('style').value;
+      const durationMinutes = parseInt(document.getElementById('duration').value);
+      const audience = document.getElementById('audience').value;
+      const additionalContext = document.getElementById('context').value;
+
+      if (!pptSummary || !pptStructure) {
+        showError('请先上传文件');
+        return;
+      }
+
+      setLoading(true, '正在生成导演阐述...');
+      showToast('🎬', '分析中', '总导演智能体正在分析文档整体结构和核心思想...');
+
+      try {
+        const response = await fetch('/api/generate/phase1-director', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pptContent: pptSummary,
+            structure: pptStructure,
+            slides: pptSlides,  // 传入 slides
+            style,
+            durationMinutes,
+            audience: audience || undefined,
+            additionalContext: additionalContext || undefined
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || '导演阐述生成失败');
+        }
+
+        const data = await response.json();
+        sessionId = data.sessionId;
+        directorBrief = data.directorBrief;
+
+        // 显示导演阐述确认区域
+        showDirectorBriefSection(directorBrief);
+
+        // 隐藏参数区域，显示步骤指示器
+        paramSection.style.display = 'none';
+        stepIndicator.style.display = 'flex';
+        updateStepIndicator('director');
+
+        hideError();
+      } catch (error) {
+        showError(`导演阐述生成失败：${error.message}`);
+      } finally {
+        setLoading(false, '');
+      }
+    });
+
+    /**
+     * 显示导演阐述确认区域
+     */
+    function showDirectorBriefSection(brief) {
+      directorBriefSection.style.display = 'block';
+      uncertaintySection.style.display = 'none';
+
+      // 填充字段
+      briefCoreTheme.value = brief.coreTheme || '';
+      briefNarrativeArc.value = brief.narrativeArc || '';
+      briefTone.value = brief.tone || '';
+      briefAudience.value = brief.audienceAnalysis || '';
+      briefGoal.value = brief.speechGoal || '';
+
+      // 填充关键信息列表
+      briefKeyMessages.innerHTML = (brief.keyMessages || []).map(msg =>
+        `<li>${msg}</li>`
+      ).join('');
+
+      // 显示置信度
+      const confidencePercent = Math.round((brief.confidence || 0) * 100);
+      showToast('🎬', '导演阐述已生成', `置信度：${confidencePercent}%，请确认是否符合预期`);
+    }
+
+    /**
+     * 确认导演阐述
+     */
+    document.getElementById('confirmDirectorBriefBtn').addEventListener('click', async () => {
+      if (!sessionId) return;
+
+      // 收集用户可能的修改
+      const modifications = {
+        coreTheme: briefCoreTheme.value,
+        narrativeArc: briefNarrativeArc.value,
+        tone: briefTone.value,
+        audienceAnalysis: briefAudience.value,
+        speechGoal: briefGoal.value
+      };
+
+      // 从列表中提取关键信息
+      const keyMessagesEl = briefKeyMessages.querySelectorAll('li');
+      modifications.keyMessages = Array.from(keyMessagesEl).map(el => el.textContent);
+
+      setLoading(true, '正在分析内容页面...');
+      updateStepIndicator('analyst');
+
+      try {
+        // 先确认导演阐述
+        await fetch('/api/generate/confirm-director', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            confirmed: true,
+            modifications
+          })
+        });
+
+        // 更新本地 directorBrief
+        directorBrief = { ...directorBrief, ...modifications };
+
+        // 进入内容分析阶段
+        await analyzeContent();
+
+      } catch (error) {
+        showError(`确认失败：${error.message}`);
+      } finally {
+        setLoading(false, '');
+      }
+    });
+
+    /**
+     * 分析内容页面（带进度显示和超时处理）
+     */
+    async function analyzeContent() {
+      if (!sessionId) return;
+
+      // 显示进度条
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      progressContainer?.classList.add('show');
+      progressFill.style.width = '0%';
+      progressText.textContent = '准备分析...';
+
+      // 启动进度轮询
+      let progressInterval = null;
+      const startProgressPolling = () => {
+        progressInterval = setInterval(async () => {
+          try {
+            const res = await fetch(`/api/progress/${sessionId}`);
+            const progress = await res.json();
+            if (progress.exists) {
+              const percent = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
+              progressFill.style.width = `${percent}%`;
+              progressText.textContent = `${progress.status} (${percent}%)`;
+            }
+          } catch (e) {
+            // 轮询错误，忽略
+          }
+        }, 500); // 每 500ms 轮询一次
+      };
+
+      // 超时处理
+      const timeoutMs = 300000; // 5 分钟超时
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`内容分析超时（5 分钟），可能原因：1) API 响应慢 2) PPT 页数太多 3) 网络连接问题`)), timeoutMs);
+      });
+
+      try {
+        // 开始轮询
+        startProgressPolling();
+
+        const fetchPromise = fetch('/api/generate/phase2-analyst', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            structure: pptStructure
+          })
+        });
+
+        // race: 哪个先完成用哪个
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || '内容分析失败');
+        }
+
+        const data = await response.json();
+        console.log('[Frontend] 内容分析完成:', data);
+        slideAnalyses = data.slideAnalyses;
+        uncertainties = data.uncertainties || [];
+
+        // 更新进度条为 100%
+        progressFill.style.width = '100%';
+        progressText.textContent = `分析完成！共 ${slideAnalyses.length} 页，发现 ${uncertainties.length} 个不确定点`;
+
+        // 短暂延迟后继续
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        if (uncertainties.length > 0) {
+          // 显示不确定点确认区域
+          showUncertaintySection(uncertainties);
+        } else {
+          // 没有疑问，直接进入演讲稿生成
+          showToast('✅', '内容分析完成', '没有不确定点，即将生成演讲稿...');
+          setTimeout(() => generateSpeech(), 1500);
+        }
+
+      } catch (error) {
+        console.error('[Frontend] 内容分析错误:', error);
+        showError(`内容分析失败：${error.message}`);
+      } finally {
+        // 清理轮询
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+      }
+    }
+
+    /**
+     * 显示不确定点确认区域
+     */
+    function showUncertaintySection(uncertainties) {
+      directorBriefSection.style.display = 'none';
+      uncertaintySection.style.display = 'block';
+      uncertaintyCount.textContent = uncertainties.length;
+
+      uncertaintyList.innerHTML = uncertainties.map((u, index) => `
+        <div class="uncertainty-item">
+          <div class="uncertainty-header">
+            <span class="uncertainty-badge">疑问 ${index + 1}</span>
+            <span class="uncertainty-element">📌 第${u.slideNumber}页 - ${u.element}</span>
+          </div>
+          <div class="uncertainty-question">❓ ${u.question}</div>
+          ${u.suggestedInterpretation ? `
+            <div class="uncertainty-suggestion">
+              💡 智能体建议：${u.suggestedInterpretation}
+            </div>
+          ` : ''}
+          <textarea class="uncertainty-answer" data-index="${index}"
+            placeholder="请提供您的解释或确认（留空则跳过）"></textarea>
+        </div>
+      `).join('');
+
+      updateStepIndicator('analyst');
+    }
+
+    /**
+     * 确认不确定点
+     */
+    document.getElementById('confirmUncertaintyBtn').addEventListener('click', async () => {
+      if (!sessionId) return;
+
+      // 收集用户答案
+      const answerEls = document.querySelectorAll('.uncertainty-answer');
+      const answers = [];
+
+      answerEls.forEach(el => {
+        const index = parseInt(el.getAttribute('data-index'));
+        const answer = el.value.trim();
+        if (answer) {
+          answers.push({
+            question: uncertainties[index].question,
+            answer: answer
+          });
+        }
+      });
+
+      setLoading(true, '正在生成演讲稿...');
+      updateStepIndicator('writer');
+
+      try {
+        // 确认分析结果
+        await fetch('/api/generate/confirm-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            answers
+          })
+        });
+
+        // 生成演讲稿
+        await generateSpeech();
+
+      } catch (error) {
+        showError(`确认失败：${error.message}`);
+      } finally {
+        setLoading(false, '');
+      }
+    });
+
+    /**
+     * 跳过不确定点确认
+     */
+    document.getElementById('skipUncertaintyBtn').addEventListener('click', () => {
+      setLoading(true, '正在生成演讲稿...');
+      updateStepIndicator('writer');
+      generateSpeech();
+    });
+
+    /**
+     * 步骤 3：生成演讲稿
+     */
+    async function generateSpeech() {
+      if (!sessionId) return;
+
+      showToast('✍️', '生成中', '演讲稿撰写智能体正在撰写演讲稿...');
+
+      try {
+        const response = await fetch('/api/generate/phase3-writer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || '演讲稿生成失败');
+        }
+
+        const data = await response.json();
+        currentSpeech = data.speech;
+
+        // 显示演讲稿
+        displaySpeech(currentSpeech);
+
+        // 显示互动修改区域
+        document.getElementById('chatSection').style.display = 'block';
+
+        // 更新步骤
+        updateStepIndicator('completed');
+        currentStage = 'completed';
+
+        showToast('✅', '演讲稿生成完成', `共 ${currentSpeech.markdown.length} 字`);
+
+      } catch (error) {
+        showError(`演讲稿生成失败：${error.message}`);
+      }
+    }
+
+    /**
+     * 修改导演阐述（点击修改按钮时）
+     */
+    document.getElementById('modifyDirectorBriefBtn').addEventListener('click', () => {
+      // 将关键字段转换为可编辑列表
+      const currentMessages = Array.from(briefKeyMessages.querySelectorAll('li')).map(li => li.textContent);
+      const newMessages = prompt('请输入关键信息（每行一条）:', currentMessages.join('\n'));
+      if (newMessages !== null) {
+        briefKeyMessages.innerHTML = newMessages.split('\n').filter(msg => msg.trim()).map(msg =>
+          `<li>${msg.trim()}</li>`
+        ).join('');
+      }
+    });
+
+    // ==================== 原有工具函数 ====================
+
+    // 复制按钮
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      if (currentSpeech) {
+        navigator.clipboard.writeText(currentSpeech.markdown);
+        alert('已复制到剪贴板');
+      }
+    });
+
+    // 下载按钮
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      if (currentSpeech) {
+        const blob = new Blob([currentSpeech.markdown], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentSpeech.title || '演讲稿'}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    });
+  </script>
+</body>
+</html>

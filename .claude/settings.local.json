@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view:*)",
+      "Bash(npm search:*)",
+      "WebSearch",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm info:*)",
+      "Bash(jq -r .[0:5][].name)",
+      "Bash(jq -r .[].name)",
+      "Bash(npm install:*)",
+      "Bash(npm cache:*)",
+      "Bash(echo:*)",
+      "Bash(sudo chown:*)",
+      "Bash(curl:*)",
+      "Bash(npm run:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(lsof -ti:3000)"
+    ]
+  }
+}
