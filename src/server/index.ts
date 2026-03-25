@@ -198,8 +198,15 @@ app.post('/api/generate/phase2-analyst', async (req, res) => {
 
     // 传入 structure 用于分析
     console.log(`[API] 调用 orchestrator.analyzeContent...`);
+    console.log(`[API] structure:`, JSON.stringify(structure, null, 2));
     const result = await orchestrator.analyzeContent(sessionId, structure, onProgress);
     console.log(`[API] analyzeContent 返回：success=${result.success}`);
+
+    if (result.success) {
+      console.log(`[API] 分析成功，slideAnalyses 长度：${result.data?.length}`);
+    } else {
+      console.error(`[API] analyzeContent 返回错误：${result.error}`);
+    }
 
     // 清理进度
     progressMap.delete(sessionId);

@@ -178,6 +178,7 @@ export class Orchestrator {
     const session = this.sessions.get(sessionId);
     console.log(`[Orchestrator] analyzeContent 被调用，sessionId=${sessionId}`);
     console.log(`[Orchestrator] Session 存在：${!!session}`);
+    console.log(`[Orchestrator] structure 参数:`, structure ? `有 ${structure.bodySlides?.length || 0} 页 bodySlides` : 'undefined');
     if (session) {
       console.log(`[Orchestrator] Session.pptSlides: ${session.pptSlides ? session.pptSlides.length : 0} 页`);
       console.log(`[Orchestrator] Session.confirmedDirectorBrief 存在：${!!session.confirmedDirectorBrief}`);
