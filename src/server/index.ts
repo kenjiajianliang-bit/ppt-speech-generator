@@ -240,6 +240,7 @@ app.post('/api/generate/phase2-analyst', async (req, res) => {
     // 清理进度
     progressMap.delete(req.body.sessionId);
     console.error('内容分析失败:', error);
+    console.error('错误堆栈:', error instanceof Error ? error.stack : '无堆栈');
     res.status(500).json({
       error: error instanceof Error ? error.message : '内容分析失败'
     });
@@ -539,6 +540,9 @@ app.post('/api/refine', async (req, res) => {
 // 启动服务器
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`服务器运行在 http://0.0.0.0:${PORT}`);
+  console.log(`当前环境：${process.env.NODE_ENV || 'development'}`);
+  console.log(`API baseURL: ${process.env.DASHSCOPE_BASE_URL}`);
+  console.log(`Model: ${process.env.DASHSCOPE_MODEL || 'qwen3.5-plus'}`);
   console.log(`\nAPI 端点:`);
   console.log(`\n--- 多智能体分阶段 API ---`);
   console.log(`  POST /api/generate/phase1-director  - 阶段 1：生成导演阐述`);
