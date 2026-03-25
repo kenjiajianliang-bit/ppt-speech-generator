@@ -1,16 +1,21 @@
-# Railway Dockerfile - 简化版
+# Railway Dockerfile - 使用 tsx 运行
 FROM node:20-alpine
 
 WORKDIR /app
 
-# 复制所有文件（除了 .gitignore 排除的）
-COPY . .
+# 复制 package.json 和 package-lock.json
+COPY package*.json ./
 
-# 安装依赖并构建
-RUN npm install && npm run build
+# 安装所有依赖（包括 tsx）
+RUN npm install
+
+# 复制所有源代码
+COPY src/ ./src/
+COPY public/ ./public/
+COPY tsconfig.json ./
 
 # 暴露端口
 EXPOSE 3000
 
-# 启动
-CMD ["node", "dist/server/index.js"]
+# 使用 tsx 运行 TypeScript 源码
+CMD ["tsx", "src/server/index.ts"]
