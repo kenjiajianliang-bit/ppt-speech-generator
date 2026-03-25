@@ -1224,8 +1224,20 @@
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || '导演阐述生成失败');
+          let errorMessage = '导演阐述生成失败';
+          try {
+            const errorText = await response.text();
+            console.error('错误响应内容:', errorText);
+            try {
+              const data = JSON.parse(errorText);
+              errorMessage = data.error || errorMessage;
+            } catch (e) {
+              errorMessage = errorText || errorMessage;
+            }
+          } catch (e) {
+            console.error('错误响应读取失败:', e);
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();

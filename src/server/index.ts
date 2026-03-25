@@ -111,12 +111,14 @@ function createProgressCallback(sessionId: string) {
 app.post('/api/generate/phase1-director', async (req, res) => {
   try {
     const { sessionId, pptContent, structure, style, durationMinutes, audience, additionalContext, slides } = req.body;
+    console.log(`[API] phase1-director 收到请求：sessionId=${sessionId || 'new'}`);
 
     if (!pptContent || !structure || !style || !durationMinutes) {
       return res.status(400).json({ error: '缺少必要参数' });
     }
 
     const currentSessionId = sessionId || generateSessionId();
+    console.log(`[API] 调用 orchestrator.generateDirectorBrief...`);
 
     const result = await orchestrator.generateDirectorBrief(
       currentSessionId,
@@ -125,8 +127,13 @@ app.post('/api/generate/phase1-director', async (req, res) => {
       { style, durationMinutes, audience, additionalContext },
       slides  // 传入解析后的 slides
     );
+    console.log(`[API] generateDirectorBrief 返回：success=${result.success}`);
 
     if (result.success) {
+      console.log(`[API] 返回 directorBrief:`, JSON.stringify({
+        coreTheme: result.data?.coreTheme?.substring(0, 50),
+        confidence: result.confidence
+      }));
       res.json({
         sessionId: currentSessionId,
         stage: 'director',
@@ -135,6 +142,7 @@ app.post('/api/generate/phase1-director', async (req, res) => {
         message: '导演阐述已生成，请确认后继续'
       });
     } else {
+      console.error(`[API] generateDirectorBrief 返回错误：${result.error}`);
       res.status(500).json({ error: result.error });
     }
   } catch (error) {
