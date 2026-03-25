@@ -12,6 +12,7 @@ import { SpeechGenerator } from '../generators/speech-generator';
 import { getAvailableStyles } from '../config/speech-styles';
 import { Orchestrator } from '../agents/orchestrator';
 import { confirmationHandler } from './confirmation-handler';
+import type { StructureAnalysis } from '../analyzers/content-analyzer';
 
 // 加载环境变量
 dotenv.config();
@@ -306,15 +307,16 @@ app.get('/api/test-analyze', async (req, res) => {
       sections: [],
       openingSlides: [],
       bodySlides: [1],
-      closingSlides: []
-    }, (c, t, s) => {
+      closingSlides: [],
+      mainTopics: []
+    } as StructureAnalysis, (c, t, s) => {
       console.log(`[Test Progress] ${c}/${t} - Slide ${s}`);
     });
 
     console.log('[Test] 结果:', result.success ? '成功' : '失败', result.error || '');
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Test] 失败:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error instanceof Error ? error.message : '测试失败' });
   }
 });
 

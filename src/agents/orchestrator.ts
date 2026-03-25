@@ -224,7 +224,7 @@ export class Orchestrator {
         },
         directorBrief: session.confirmedDirectorBrief!,
         positionInNarrative: {
-          section: this.getSectionForSlide(slide.slideNumber, session, struct),
+          section: this.getSectionForSlide(slide.slideNumber, session),
           isBeginning: index === 0,
           isEnd: index === bodySlides.length - 1
         }
