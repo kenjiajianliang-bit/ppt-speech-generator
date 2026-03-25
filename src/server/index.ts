@@ -134,13 +134,36 @@ app.post('/api/generate/phase1-director', async (req, res) => {
         coreTheme: result.data?.coreTheme?.substring(0, 50),
         confidence: result.confidence
       }));
-      res.json({
-        sessionId: currentSessionId,
-        stage: 'director',
-        directorBrief: result.data,
-        confidence: result.confidence,
-        message: '导演阐述已生成，请确认后继续'
-      });
+      try {
+        res.json({
+          sessionId: currentSessionId,
+          stage: 'director',
+          directorBrief: result.data,
+          confidence: result.confidence,
+          message: '导演阐述已生成，请确认后继续'
+        });
+        console.log('[API] phase1-director 响应已发送');
+      } catch (serializeError) {
+        console.error('[API] directorBrief 序列化失败:', serializeError);
+        // 尝试清理后重新序列化
+        const safeBrief = {
+          coreTheme: result.data?.coreTheme || '',
+          narrativeArc: result.data?.narrativeArc || '',
+          tone: result.data?.tone || '',
+          audienceAnalysis: result.data?.audienceAnalysis || '',
+          keyMessages: Array.isArray(result.data?.keyMessages) ? result.data.keyMessages : [],
+          speechGoal: result.data?.speechGoal || '',
+          potentialChallenges: result.data?.potentialChallenges || '',
+          confidence: result.confidence || 0.7
+        };
+        res.json({
+          sessionId: currentSessionId,
+          stage: 'director',
+          directorBrief: safeBrief,
+          confidence: result.confidence,
+          message: '导演阐述已生成，请确认后继续'
+        });
+      }
     } else {
       console.error(`[API] generateDirectorBrief 返回错误：${result.error}`);
       res.status(500).json({ error: result.error });
