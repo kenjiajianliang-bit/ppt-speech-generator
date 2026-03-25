@@ -1,13 +1,13 @@
-# Railway Dockerfile - 使用 tsx 运行
-FROM node:20-alpine
+# Railway Dockerfile - 使用 ts-node 运行
+FROM node:20-bookworm
 
 WORKDIR /app
 
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装所有依赖（包括 production 和 dev，因为 tsx 需要在 production 运行）
-RUN npm install --production=false
+# 安装所有依赖
+RUN npm install
 
 # 复制所有源代码
 COPY src/ ./src/
@@ -18,4 +18,4 @@ COPY tsconfig.json ./
 EXPOSE 3000
 
 # 使用 tsx 运行 TypeScript 源码
-CMD ["npx", "tsx", "src/server/index.ts"]
+CMD ["./node_modules/.bin/tsx", "src/server/index.ts"]
